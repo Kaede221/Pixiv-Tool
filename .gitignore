@@ -153,3 +153,5 @@ cython_debug/
 
 # Kaede相关文件
 data.json
+jsons/
+pids.json
