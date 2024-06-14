@@ -1,35 +1,134 @@
-import requests
+"""
+工具类
+可以实例化，从而调用里面的方法
+"""
 import json
+import os
+import random
+import string
 import time
-import gradio as gr
 from urllib.parse import quote
+import gradio as gr
+import requests
+
+
+def init_project(db_name: str) -> bool:
+    """
+    初始化项目
+    会创建需要的文件夹，文件，并且检查是否存在意外的问题
+    :return: 是否初始化成功
+    """
+    try:
+        # 初始化jsons文件夹
+        if not os.path.exists('jsons'):
+            print('jsons 文件夹不存在，已创建')
+            os.mkdir('jsons')
+        # 初始化data.json
+        if not os.path.exists(f'jsons/{db_name}'):
+            print(f'{db_name} 文件不存在，已创建')
+            with open(f'jsons/{db_name}', 'w', encoding='utf-8') as f:
+                f.write('[]')
+        # 初始化pids文件-这个文件用于加快合并数据库的速度
+        if not os.path.exists(f'pids.json'):
+            print(f'pids.json 文件不存在，已创建')
+            with open(f'pids.json', 'w', encoding='utf-8') as f:
+                f.write('[]')
+    except IOError:
+        print('文件读写错误')
+        return False
+    finally:
+        print('项目初始化完成！')
+        return True
+
+
+def get_random_string(length: int) -> str:
+    """
+    获取一段指定长度的随机字符串
+    :param length: 需要的长度
+    :return: 字符串
+    """
+    return ''.join(
+        random.choice(string.ascii_letters + string.digits)
+        for _ in range(length))
+
+
+def merge_json_files(db_name: str, progress=gr.Progress()) -> dict:
+    """
+    合并json文件
+    :param db_name: 不动数据库文件名称，不会被修改
+    :param progress: 进度条
+    :return: 返回一个列表，包含相关的数据
+    """
+    # 创建列表，方便统计
+    # 最终的列表，统计一下
+    final_data_list = []
+    # 新增的数量
+    files_counter = 0
+
+    # 读取pids文件
+    with open('pids.json', 'r', encoding='utf-8') as f:
+        # 这个是用来统计pid的，通过pid判断是否出现过这张图片
+        pids_list = json.loads(f.read())
+
+    # 遍历文件夹
+    for file in os.listdir('jsons'):
+        with open(f'jsons/{file}', 'r', encoding='utf-8') as f:
+            # 如果扫描到输出文件，那么跳过就好
+            if file == db_name:
+                continue
+            # 获取文件中的标准数组
+            temp_arr = json.loads(f.read())
+            for item in progress.tqdm(temp_arr, desc="文件加载中..."):
+                # 查看pid是否在列表中
+                if item['pid'] not in pids_list:
+                    # 不存在的话，就添加到pids里面
+                    pids_list.append(item['pid'])
+                    # 并且追加
+                    final_data_list.append(item)
+                    # 计数+1
+                    files_counter += 1
+        # 读取完成，删除文件即可
+        os.remove(f'jsons/{file}')
+
+    # 保存pids文件，方便下次使用
+    with open('pids.json', 'w', encoding='utf-8') as f:
+        f.write(json.dumps(pids_list))
+
+    # 保存数据为另外一个文件
+    with open(f'jsons/{db_name}', 'r', encoding='utf-8') as f:
+        data: list = json.loads(f.read())
+        # 开始追加数据
+        for i in progress.tqdm(final_data_list, desc='追加数据中...'):
+            data.append(i)
+        # 保存数据
+        with open(f'jsons/{db_name}', 'w', encoding='utf-8') as f2:
+            f2.write(json.dumps(data))
+
+    # 返回值
+    return {'new': files_counter}
 
 
 class Pixiv:
-    def __init__(self, cookie, userAgent):
+    def __init__(self, cookie, user_agent):
         self.cookie = cookie
-        self.userAgent = userAgent
+        self.userAgent = user_agent
 
     # 在这里实现一些和pixiv相关的操作
-    def getByIllusts(self, TARGET: str,
-                     COOKIE: str,
-                     USER_AGENT: str,
-                     progress=gr.Progress()):
+    def get_by_illusion(self, target_origin: str,
+                        progress=gr.Progress()):
         """
-        通过illusts来获取json数据
-        :param TARGET: 目标链接，就是illusts的那个链接
-        :param COOKIE: 用户的cookie
-        :param USER_AGENT: 用户的agent
+        通过Ill来获取json数据
+        :param target_origin: 目标链接
         :param progress: 默认进度条
         :return: 下载的情况
         """
         headers = {
             # 根据自己的浏览器情况填写，UA头也是
-            "cookie": COOKIE,
-            "user-agent": USER_AGENT,
-            "referer": TARGET,
+            "cookie": self.cookie,
+            "user-agent": self.userAgent,
+            "referer": target_origin,
         }
-        url = TARGET
+        url = target_origin
         session = requests.get(url, headers=headers, verify=False)
         json_get = session.json()
 
@@ -43,9 +142,9 @@ class Pixiv:
                               "title": temp_dict["title"], "author": temp_dict["userName"]}
             # r18主要是根据R-18标签进行判断，其他的这里不做考虑
             if "R-18" in temp_dict["tags"]:
-                get_dict["r18"] = 1
+                get_dict["r18"] = True
             else:
-                get_dict["r18"] = 0
+                get_dict["r18"] = False
             get_dict["width"] = temp_dict["width"]
             get_dict["height"] = temp_dict["height"]
             get_dict["tags"] = temp_dict["tags"]
@@ -61,13 +160,13 @@ class Pixiv:
             f.write(json.dumps(empty_arr))
         return '下载完成！'
 
-    def getByTag(self, TAG: str, COOKIE, USER_AGENT, progress=gr.Progress()):
-        keyword = quote(TAG)
+    def get_by_tag(self, _tag: str, progress=gr.Progress()):
+        keyword = quote(_tag)
         target = f"https://www.pixiv.net/ajax/search/artworks/{keyword}?word={keyword}&order=date_d&mode=all&p=1&s_mode=s_tag_full&type=all&lang=zh"
         headers = {
             # 根据自己的浏览器情况填写，UA头也是
-            "cookie": COOKIE,
-            "user-agent": USER_AGENT,
+            "cookie": self.cookie,
+            "user-agent": self.userAgent,
             "referer": target,
         }
         session = requests.get(target, headers=headers, verify=False)
@@ -85,9 +184,9 @@ class Pixiv:
                                     "title": ITEM["title"], "author": ITEM["userName"]}
                 # r18无法判断，这里先随便给一个把
                 if "R-18" in ITEM["tags"]:
-                    empty_dict["r18"] = 1
+                    empty_dict["r18"] = True
                 else:
-                    empty_dict["r18"] = 0
+                    empty_dict["r18"] = False
                 empty_dict["width"] = ITEM["width"]
                 empty_dict["height"] = ITEM["height"]
                 empty_dict["tags"] = ITEM["tags"]
@@ -112,9 +211,9 @@ class Pixiv:
                                     "title": ITEM["title"], "author": ITEM["userName"]}
                 # r18无法判断，这里先随便给一个把
                 if "R-18" in ITEM["tags"]:
-                    empty_dict["r18"] = 1
+                    empty_dict["r18"] = True
                 else:
-                    empty_dict["r18"] = 0
+                    empty_dict["r18"] = False
                 empty_dict["width"] = ITEM["width"]
                 empty_dict["height"] = ITEM["height"]
                 empty_dict["tags"] = ITEM["tags"]
@@ -132,17 +231,15 @@ class Pixiv:
             f.write(json.dumps(empty_arr))
         return "下载完成！"
 
-    def getByUser(self, TARGET: str,
-                  COOKIE: str,
-                  USER_AGENT: str,
-                  progress=gr.Progress()):
+    def get_by_user(self, _target: str,
+                    progress=gr.Progress()):
         headers = {
             # 根据自己的浏览器情况填写，UA头也是
-            "cookie": COOKIE,
-            "user-agent": USER_AGENT,
-            "referer": TARGET,
+            "cookie": self.cookie,
+            "user-agent": self.userAgent,
+            "referer": _target,
         }
-        URL = TARGET
+        URL = _target
         session = requests.get(URL, headers=headers, verify=False)
         JSON = session.json()
 
@@ -158,9 +255,9 @@ class Pixiv:
                                     "title": temp_dict["title"], "author": temp_dict["userName"]}
                 # r18无法判断，这里先随便给一个把
                 if "R-18" in temp_dict["tags"]:
-                    empty_dict["r18"] = 1
+                    empty_dict["r18"] = True
                 else:
-                    empty_dict["r18"] = 0
+                    empty_dict["r18"] = False
                 empty_dict["width"] = temp_dict["width"]
                 empty_dict["height"] = temp_dict["height"]
                 empty_dict["tags"] = temp_dict["tags"]
@@ -177,3 +274,7 @@ class Pixiv:
         with open(f"jsons/{time.time()}.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(empty_arr))
         return "下载完成！"
+
+
+if __name__ == '__main__':
+    pass

@@ -1,7 +1,0 @@
-# 我在这里储存了一些配置项目，方便进行修改
-user:
-  user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0"
-  cookie: "first_visit_datetime_pc=2024-02-18%2022%3A04%3A13; cc1=2024-02-18%2022%3A04%3A13; p_ab_id=7; p_ab_id_2=6; p_ab_d_id=577907231; yuid_b=SXiHCSA; __cf_bm=kaVObILHpEa0YgcS8hCkrvR2G66HFUaC7nrKBw1BrVA-1708261453-1.0-AVn452hU+aBaU/NVWAb2ExW1Hl/urcxMxFFRAxsUNgLZpK6TCx5WJ+gLLbAAvrYiTK6D6SyEp99OIHQBk1rVqYbKmVIfDG1/qvzK2USMcTGN; _gcl_au=1.1.1897499391.1708261487; _ga=GA1.1.936194064.1708261488; cf_clearance=mYWAl9s7neJd3XYHaUvV_URfMFlIVf_xmKZGoEppiEY-1708261526-1.0-AVJH1DGkiZ9jWXCnvEekenPQvMPONJ3EPGPG97ZhZMIA4OXecdD5GMUCzs5pZCwNuxXaEviZxRPFs4FMCKXUlGI=; PHPSESSID=96754230_lhtcC1PTixy1MsjjfFVTMAZnvRQlAN5E; device_token=56ce7f0c1a4d84715f343388cc96b6ca; privacy_policy_agreement=6; c_type=18; privacy_policy_notification=0; a_type=1; b_type=2; QSI_S_ZN_5hF4My7Ad6VNNAi=v:0:0; _ga_75BBYNYN9J=GS1.1.1708261487.1.1.1708262413.0.0.0"
-
-app:
-  port: 5600
