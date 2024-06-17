@@ -12,6 +12,8 @@ from urllib.parse import quote
 import requests
 import urllib3
 from tqdm import tqdm
+import matplotlib.pyplot as plt
+import numpy as np
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -59,7 +61,6 @@ def get_random_string(length: int) -> str:
 def merge_json_files(db_name: str) -> dict:
     """
     合并json文件
-    :param progress:
     :param db_name: 不动数据库文件名称，不会被修改
     :return: 返回一个列表，包含相关的数据
     """
@@ -121,7 +122,6 @@ class Pixiv:
     def get_by_illusion(self, target_origin: str):
         """
         通过Ill来获取json数据
-        :param progress:
         :param target_origin: 目标链接
         :return: 下载的情况
         """
@@ -161,7 +161,9 @@ class Pixiv:
         # 导出记录完毕的json数据
         with open(f"jsons/{time.time()}.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(empty_arr))
-        return '下载完成！'
+        return {
+            '下载完成数目': len(empty_arr)
+        }
 
     def get_by_tag(self, _tag: str):
         keyword = quote(_tag)
@@ -201,7 +203,7 @@ class Pixiv:
                 empty_dict["url"] = _json["body"][0]["urls"]["original"]
                 # empty_dict["urls"] = JSON1["body"][0]["urls"]
                 empty_arr.append(empty_dict)
-            except:
+            except ConnectionError:
                 continue
         with open(f"jsons/POPULAR_{time.time()}.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(empty_arr))
@@ -227,7 +229,7 @@ class Pixiv:
                 _json = session.json()
                 empty_dict["url"] = _json["body"][0]["urls"]["original"]
                 empty_arr.append(empty_dict)
-            except:
+            except ConnectionError:
                 # 否则直接下一个就好
                 continue
         with open(f"jsons/RECENT_{time.time()}.json", "w", encoding="utf-8") as f:
@@ -276,7 +278,9 @@ class Pixiv:
         # 导出记录完毕的json数据
         with open(f"jsons/{time.time()}.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(empty_arr))
-        return "下载完成！"
+        return {
+            '新增下载数量': len(empty_arr)
+        }
 
     def mode_gate(self, _mode: str, _target):
         if _target == "":
@@ -310,3 +314,34 @@ def stats_json(db_name: str) -> dict:
         '数据量': len(data),
         '文件大小': data_size
     }
+
+
+def get_top_tags(db_name: str, num: int) -> list[tuple]:
+    """
+    根据Tag出现的次数，获取前num个Tag，以及对应的数量
+    :param num: 前num个
+    :param db_name: 需要遍历的数据库名称，包含.json
+    :return: 前num个tag以及对应数量，按照list[tuple]进行返回
+    """
+    # 判断数据是否符合规范
+    if not 1 <= num <= 20:
+        return [('错误哦', '数据超出限制')]
+    # 创建临时Dict
+    temp_dict: dict = {}
+    # 读取文件
+    with open(f'jsons/{db_name}', 'r', encoding='utf-8') as f:
+        data_list: list = json.loads(f.read())
+    # 遍历文件，并储存到dict中
+    for i in data_list:
+        for _tag in i['tags']:
+            if _tag in temp_dict.keys():
+                temp_dict[_tag] += 1
+            else:
+                temp_dict[_tag] = 1
+
+    target_list = sorted(temp_dict.items(), key=lambda x: x[1], reverse=True)[:num]
+    return target_list
+
+
+if __name__ == '__main__':
+    print(get_top_tags('data.json', 5))

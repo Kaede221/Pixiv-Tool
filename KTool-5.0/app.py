@@ -25,9 +25,8 @@ utils.init_project(db_name)
 # 实例化pixiv对象
 pixiv = utils.Pixiv(cookie, user_agent)
 
-# 用户界面
+# 获取页面
 tab_get, tab_deal = st.tabs(['获取', '处理'])
-
 with tab_get:
     choose_mode = st.selectbox('获取方式', ['Ill', 'User', 'Tag'],
                                help='获取数据的方式，允许通过Ill，User或者Tag进行获取')
@@ -38,14 +37,25 @@ with tab_get:
     if get_button:
         pixiv.mode_gate(choose_mode, target_url_or_tag)
 
+# 处理页面
 with tab_deal:
-    target_database_name = st.text_input('数据库文件名', db_name, help='目标数据库的文件名称，请在config.yaml进行修改',
-                                         disabled=True)
-    merge_button = st.button('合并文件', key='merge_button', type='primary', use_container_width=True)
-    states_button = st.button('查看数据库相关数据', use_container_width=True)
-    if merge_button:
-        ret = utils.merge_json_files(target_database_name)
-        st.write(ret)
-    if states_button:
-        ret = utils.stats_json(target_database_name)
-        st.write(ret)
+    col1, col2 = st.columns(2)
+    with col1:
+        target_database_name = st.text_input('数据库文件名', db_name,
+                                             help='目标数据库的文件名称，请在config.yaml进行修改',
+                                             disabled=True)
+        merge_button = st.button('合并文件', key='merge_button', type='primary', use_container_width=True)
+        states_button = st.button('查看数据库相关数据', use_container_width=True)
+
+        if merge_button:
+            ret = utils.merge_json_files(target_database_name)
+            st.write(ret)
+        if states_button:
+            ret = utils.stats_json(target_database_name)
+            st.write(ret)
+    with col2:
+        tag_num = st.slider('目标Tag数目', help='一个整数，获取前n个Tag的排名', min_value=1, max_value=20, step=1)
+        start_get = st.button('获取前n个Tag以及数目', use_container_width=True)
+
+        if start_get:
+            st.write(utils.get_top_tags(target_database_name, tag_num))
