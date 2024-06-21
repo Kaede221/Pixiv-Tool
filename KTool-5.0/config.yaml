@@ -1,9 +1,0 @@
-# 在这里储存了所有的配置信息
-# 需要的话，可以在这里修改
-
-# 默认数据库名称
-db_name: "data.json"
-
-# 用户相关
-cookie: "first_visit_datetime_pc=2024-06-14%2009%3A48%3A28; cc1=2024-06-14%2009%3A48%3A28; p_ab_id=9; p_ab_id_2=3; p_ab_d_id=1138435327; yuid_b=N4Q1eJM; __cf_bm=YfuBp1mwb2fkpnxle.ikhQdo7OawStDVA4Sfvma50wo-1718326108-1.0.1.1-rUkbKEY1HXNLN.zjNJTi8xJQYqFCzz84C1yopO1wdWmzc4CAAYizTK2E63bcUhUIVyJtswrNXS6aT0hUdMp56A7sGECDQp.0nsXQGsgLAto; _ga=GA1.1.773073560.1718326112; cf_clearance=gfKyg2R6TM8pZNbVC60X1o9AwdzvHY8w_ShniGpPiBM-1718326113-1.0.1.1-AjV0JE5tjIBlHM4V3_95YfCo8UYlA23ZEf9_BhPxpXdetEMZQDjkTjTlmQbrQaN8OlNzS4pmiuC7v_EuDaPTUw; PHPSESSID=96754230_BNz6rqtZLE4oLgKxJ6hUOn1G0Rs2Op3z; device_token=e3bf2a3363bf7225e43bb9d9dec6c2d2; privacy_policy_agreement=7; c_type=19; privacy_policy_notification=0; a_type=1; b_type=2; _im_vid=01J0A3JC27JB7ZVCKAHQ2WE67R; QSI_S_ZN_5hF4My7Ad6VNNAi=v:0:0; _ga_75BBYNYN9J=GS1.1.1718326111.1.1.1718327128.0.0.0"
-user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0"
