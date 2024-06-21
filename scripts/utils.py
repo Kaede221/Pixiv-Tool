@@ -3,10 +3,15 @@
 可以实例化，从而调用里面的方法
 """
 import json
+import logging as log
 import os
 import random
 import string
+import time
+import wget
+from urllib import parse
 
+import requests
 import urllib3
 from tqdm import tqdm
 

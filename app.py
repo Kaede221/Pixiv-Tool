@@ -17,7 +17,7 @@ pixiv = Pixiv(config['user']['cookie'], config['user']['userAgent'])
 st.markdown('# Pixiv Tool')
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(['获取', '处理', '其他'])
+tab1, tab2 = st.tabs(['获取', '处理'])
 
 # 获取数据相关
 with tab1:
@@ -31,3 +31,5 @@ with tab2:
     st.text_input('输出文件名', 'data.json', disabled=True)
     if st.button('开始合并文件'):
         st.write(merge_json_files('data.json'))
+    if st.button('查看数据库相关数据'):
+        st.write(stats_json('data.json'))
