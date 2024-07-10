@@ -53,7 +53,7 @@ class Pixiv:
             err_count += 1
         with open(f"jsons/{time.time()}.json", "w", encoding="utf-8") as f:
             f.write(json.dumps(empty_arr))
-        return f'下载完, 失败数量: {err_count}'
+        return f'下载完成, 失败数量: {err_count}'
 
     def get_by_user(self, target_url: str, progress=gr.Progress()):
         headers = self.get_header(target_url)
