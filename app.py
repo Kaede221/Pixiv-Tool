@@ -1,35 +1,37 @@
-import streamlit as st
+import json
 
+import gradio as gr
+from scripts.utils import init_project, merge_json_files
 from scripts.pixiv import Pixiv
-from scripts.utils import *
 
 # 读取配置
-with open('config.json', 'r', encoding='utf-8') as f:
+with open("config.json", 'r', encoding='utf-8') as f:
     config = json.loads(f.read())
 
 # 初始化项目
-init_project('data.json')
+init_project(config['database_name'])
 
-# 实例化
-pixiv = Pixiv(config['user']['cookie'], config['user']['userAgent'])
+# 创建Pixiv对象
+pixiv = Pixiv(config['user']['cookie'], config['user']['user_agent'])
 
-# 主页UI
-st.markdown('# Pixiv Tool')
+# 构建UI
+with gr.Blocks(theme=gr.themes.Base()) as root:
+    with gr.Row():
+        with gr.Column(scale=5):
+            gr.Markdown("# 获取数据")
+            usr_mode = gr.Radio(['Ill', "User"], label="获取模式", value='User')
+            usr_url = gr.Textbox(label="目标网址", placeholder="可以输入对应的链接", max_lines=1)
+            usr_btn = gr.Button("开始获取")
+            usr_output = gr.Textbox(label="结果回显", max_lines=3, lines=3)
+            # 添加事件
+            usr_btn.click(pixiv.mode_gate, [usr_mode, usr_url], usr_output)
+        with gr.Column(scale=5):
+            gr.Markdown("# 处理数据")
+            edit_btn = gr.Button("合并文件")
+            edit_name = gr.Textbox(config['database_name'], interactive=False, label="数据库名称")
+            edit_output = gr.Textbox(label="结果回显", max_lines=3, lines=3)
+            # 添加事件
+            edit_btn.click(merge_json_files, edit_name, edit_output)
 
-# Tabs
-tab1, tab2 = st.tabs(['获取', '处理'])
-
-# 获取数据相关
-with tab1:
-    mode = st.radio('获取方式', ['Ill', 'User'])
-    target_url = st.text_input('目标链接')
-    if st.button('开始获取', use_container_width=True):
-        pixiv.mode_gate(mode, target_url)
-
-with tab2:
-    st.markdown('### 合并文件')
-    st.text_input('输出文件名', 'data.json', disabled=True)
-    if st.button('开始合并文件'):
-        st.write(merge_json_files('data.json'))
-    if st.button('查看数据库相关数据'):
-        st.write(stats_json('data.json'))
+    if __name__ == "__main__":
+        root.queue(1).launch()

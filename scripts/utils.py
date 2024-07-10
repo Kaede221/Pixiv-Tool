@@ -3,17 +3,11 @@
 可以实例化，从而调用里面的方法
 """
 import json
-import logging as log
 import os
 import random
 import string
-import time
-import wget
-from urllib import parse
-
-import requests
 import urllib3
-from tqdm import tqdm
+import gradio as gr
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -58,12 +52,7 @@ def get_random_string(length: int) -> str:
         for _ in range(length))
 
 
-def merge_json_files(db_name: str) -> dict:
-    """
-    合并json文件
-    :param db_name: 不动数据库文件名称，不会被修改
-    :return: 返回一个列表，包含相关的数据
-    """
+def merge_json_files(db_name: str, progress=gr.Progress()) -> str:
     # 创建列表，方便统计
     # 最终的列表，统计一下
     final_data_list = []
@@ -83,7 +72,7 @@ def merge_json_files(db_name: str) -> dict:
                 continue
             # 获取文件中的标准数组
             temp_arr = json.loads(f.read())
-            for item in tqdm(temp_arr, desc="文件加载中..."):
+            for item in progress.tqdm(temp_arr, desc="文件加载中..."):
                 # 查看pid是否在列表中
                 if item['pid'] not in pids_list:
                     # 不存在的话，就添加到pids里面
@@ -103,15 +92,12 @@ def merge_json_files(db_name: str) -> dict:
     with open(f'jsons/{db_name}', 'r', encoding='utf-8') as f:
         data: list = json.loads(f.read())
         # 开始追加数据
-        for i in tqdm(final_data_list, desc='追加数据中...'):
+        for i in progress.tqdm(final_data_list, desc='追加数据中...'):
             data.append(i)
         # 保存数据
         with open(f'jsons/{db_name}', 'w', encoding='utf-8') as f2:
             f2.write(json.dumps(data))
-
-    # 返回值
-    print(f'追加完成！新增{files_counter}')
-    return {'new': files_counter}
+    return f'追加完成！新增{files_counter}'
 
 
 def stats_json(db_name: str) -> dict:
@@ -119,6 +105,6 @@ def stats_json(db_name: str) -> dict:
     with open(f'jsons/{db_name}', 'r', encoding='utf-8') as f:
         data = json.loads(f.read())
     return {
-        'length': len(data),
-        'size': os.stat(f'jsons/{db_name}').st_size
+        '数据数量': len(data),
+        '文件大小': os.stat(f'jsons/{db_name}').st_size
     }
