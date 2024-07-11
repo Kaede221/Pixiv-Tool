@@ -7,6 +7,7 @@ from scripts.pixiv import Pixiv
 # 扩展
 from modules.merge_json_files import MergeJsonFiles
 from modules.data_info import DataInfo
+from modules.data_filter import DataFilter
 
 # 读取配置
 with open("config.json", 'r', encoding='utf-8') as f:
@@ -39,5 +40,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as root:
                 MergeJsonFiles(database_name).get_gui()
             with gr.Tab("查看数据库信息"):
                 DataInfo(database_name).get_gui()
+            with gr.Tab("数据清洗"):
+                DataFilter(database_name).get_gui()
 if __name__ == "__main__":
     root.queue(1).launch()
