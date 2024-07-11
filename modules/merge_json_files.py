@@ -61,6 +61,6 @@ class MergeJsonFiles:
         gr.Markdown("你可以在获取文件后, 在这里将获取的文件合并, 最后保存为一个单独的文件")
         gr.Textbox(self.database_name, interactive=False, label="数据库名称", max_lines=1)
         edit_btn = gr.Button("合并")
-        edit_output = gr.Textbox(label="结果回显", max_lines=3, lines=3)
+        edit_output = gr.Textbox(label="结果回显", max_lines=3, lines=3, interactive=False)
         # 添加事件
         edit_btn.click(self.merge_json_files, outputs=edit_output)
