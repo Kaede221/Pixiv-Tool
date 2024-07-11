@@ -1,15 +1,8 @@
 """
 工具类
-可以实例化，从而调用里面的方法
+实现一些基本的方法
 """
-import json
 import os
-import random
-import string
-import urllib3
-import gradio as gr
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def init_project(db_name: str) -> bool:
@@ -39,72 +32,3 @@ def init_project(db_name: str) -> bool:
     finally:
         print('项目初始化完成！')
         return True
-
-
-def get_random_string(length: int) -> str:
-    """
-    获取一段指定长度的随机字符串
-    :param length: 需要的长度
-    :return: 字符串
-    """
-    return ''.join(
-        random.choice(string.ascii_letters + string.digits)
-        for _ in range(length))
-
-
-def merge_json_files(db_name: str, progress=gr.Progress()) -> str:
-    # 创建列表，方便统计
-    # 最终的列表，统计一下
-    final_data_list = []
-    # 新增的数量
-    files_counter = 0
-
-    # 读取pids文件
-    with open('pids.json', 'r', encoding='utf-8') as f:
-        # 这个是用来统计pid的，通过pid判断是否出现过这张图片
-        pids_list = json.loads(f.read())
-
-    # 遍历文件夹
-    for file in os.listdir('jsons'):
-        with open(f'jsons/{file}', 'r', encoding='utf-8') as f:
-            # 如果扫描到输出文件，那么跳过就好
-            if file == db_name:
-                continue
-            # 获取文件中的标准数组
-            temp_arr = json.loads(f.read())
-            for item in progress.tqdm(temp_arr, desc="文件加载中..."):
-                # 查看pid是否在列表中
-                if item['pid'] not in pids_list:
-                    # 不存在的话，就添加到pids里面
-                    pids_list.append(item['pid'])
-                    # 并且追加
-                    final_data_list.append(item)
-                    # 计数+1
-                    files_counter += 1
-        # 读取完成，删除文件即可
-        os.remove(f'jsons/{file}')
-
-    # 保存pids文件，方便下次使用
-    with open('pids.json', 'w', encoding='utf-8') as f:
-        f.write(json.dumps(pids_list))
-
-    # 保存数据为另外一个文件
-    with open(f'jsons/{db_name}', 'r', encoding='utf-8') as f:
-        data: list = json.loads(f.read())
-        # 开始追加数据
-        for i in progress.tqdm(final_data_list, desc='追加数据中...'):
-            data.append(i)
-        # 保存数据
-        with open(f'jsons/{db_name}', 'w', encoding='utf-8') as f2:
-            f2.write(json.dumps(data))
-    return f'追加完成！新增{files_counter}'
-
-
-def stats_json(db_name: str) -> dict:
-    print('处理中...不要着急')
-    with open(f'jsons/{db_name}', 'r', encoding='utf-8') as f:
-        data = json.loads(f.read())
-    return {
-        '数据数量': len(data),
-        '文件大小': os.stat(f'jsons/{db_name}').st_size
-    }
